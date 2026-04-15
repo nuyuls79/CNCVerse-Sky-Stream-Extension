@@ -3,8 +3,8 @@
   "name": "Castle TV",
   "version": 1,
   "baseUrl": "https://api.hlowb.com",
-  "description": "Castle TV movies and series (key suffix required for decryption)",
-  "authors": ["NivinCNC", "Codex"],
+  "description": "Castle TV Movies and Series Provider",
+  "authors": ["NivinCNC"],
   "languages": ["en", "hi", "ta"],
   "categories": ["Movie", "TvSeries"]
 }
