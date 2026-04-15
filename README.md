@@ -1,3 +1,5 @@
+Note:
+Currently cricfy and skteck wont work as expected [Development on progress]
 # 🌌 skystream-plugins
 skystream-plugins is an extension repo for [SkyStream](https://github.com/akashdh11/skystream). Follow the guide below to get started and set up your providers.
 
