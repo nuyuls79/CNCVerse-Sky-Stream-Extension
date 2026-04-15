@@ -1,0 +1,82 @@
+[
+  {
+    "packageName": "dev.nivincnc.cncverse.castletv",
+    "name": "Castle TV",
+    "version": 1,
+    "baseUrl": "https://api.hlowb.com",
+    "description": "Castle TV movies and series (key suffix required for decryption)",
+    "authors": [
+      "NivinCNC",
+      "Codex"
+    ],
+    "languages": [
+      "en",
+      "hi",
+      "ta"
+    ],
+    "categories": [
+      "Movie",
+      "TvSeries"
+    ],
+    "url": "http://127.0.0.1:8787/dist/dev.nivincnc.cncverse.castletv.sky"
+  },
+  {
+    "packageName": "dev.nivincnc.cncverse.cricfy",
+    "name": "Cricfy",
+    "version": 1,
+    "baseUrl": "https://cfymarkscanjiostar80.top",
+    "description": "Cricfy IPTV provider with encrypted M3U, DRM keys, and license fallback",
+    "authors": [
+      "NivinCNC"
+    ],
+    "languages": [
+      "en",
+      "hi",
+      "ta"
+    ],
+    "categories": [
+      "LiveTv"
+    ],
+    "url": "http://127.0.0.1:8787/dist/dev.nivincnc.cncverse.cricfy.sky"
+  },
+  {
+    "packageName": "dev.nivincnc.cncverse.moviebox",
+    "name": "MovieBox",
+    "version": 1,
+    "baseUrl": "https://api3.aoneroom.com",
+    "description": "MovieBox provider with x-client-token + x-tr-signature flow",
+    "authors": [
+      "NivinCNC",
+      "Codex"
+    ],
+    "languages": [
+      "en",
+      "hi",
+      "ta"
+    ],
+    "categories": [
+      "Movie",
+      "TvSeries"
+    ],
+    "url": "http://127.0.0.1:8787/dist/dev.nivincnc.cncverse.moviebox.sky"
+  },
+  {
+    "packageName": "dev.nivincnc.cncverse.sktech",
+    "name": "SKTech",
+    "version": 1,
+    "baseUrl": "https://matkeritnagurorxbxb.store",
+    "description": "SKTech IPTV provider with encrypted M3U and DRM parsing",
+    "authors": [
+      "NivinCNC"
+    ],
+    "languages": [
+      "en",
+      "hi",
+      "ta"
+    ],
+    "categories": [
+      "LiveTv"
+    ],
+    "url": "http://127.0.0.1:8787/dist/dev.nivincnc.cncverse.sktech.sky"
+  }
+]

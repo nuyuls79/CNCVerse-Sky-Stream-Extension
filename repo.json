@@ -1,0 +1,9 @@
+{
+  "name": "CNCVerse Sky Stream Extension",
+  "packageName": "dev.nivincnc.cncverse",
+  "description": "SkyStream plugins repository for CNCVerse providers",
+  "manifestVersion": 1,
+  "pluginLists": [
+    "http://127.0.0.1:8787/dist/plugins.json"
+  ]
+}

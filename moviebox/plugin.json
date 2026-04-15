@@ -1,0 +1,10 @@
+{
+  "packageName": "dev.nivincnc.cncverse.moviebox",
+  "name": "MovieBox",
+  "version": 1,
+  "baseUrl": "https://api3.aoneroom.com",
+  "description": "MovieBox provider with x-client-token + x-tr-signature flow",
+  "authors": ["NivinCNC", "Codex"],
+  "languages": ["en", "hi", "ta"],
+  "categories": ["Movie", "TvSeries"]
+}
