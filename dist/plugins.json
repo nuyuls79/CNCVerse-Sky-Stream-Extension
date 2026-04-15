@@ -4,10 +4,9 @@
     "name": "Castle TV",
     "version": 1,
     "baseUrl": "https://api.hlowb.com",
-    "description": "Castle TV movies and series (key suffix required for decryption)",
+    "description": "Castle TV Movies and Series Provider",
     "authors": [
-      "NivinCNC",
-      "Codex"
+      "NivinCNC"
     ],
     "languages": [
       "en",
@@ -25,7 +24,7 @@
     "name": "Cricfy",
     "version": 1,
     "baseUrl": "https://cfymarkscanjiostar80.top",
-    "description": "Cricfy IPTV provider with encrypted M3U, DRM keys, and license fallback",
+    "description": "Cricfy IPTV provider To Watch Live sports and TV channels",
     "authors": [
       "NivinCNC"
     ],
@@ -44,10 +43,9 @@
     "name": "MovieBox",
     "version": 1,
     "baseUrl": "https://api3.aoneroom.com",
-    "description": "MovieBox provider with x-client-token + x-tr-signature flow",
+    "description": "Multi Language Movies and Series Provider",
     "authors": [
-      "NivinCNC",
-      "Codex"
+      "NivinCNC"
     ],
     "languages": [
       "en",
@@ -65,7 +63,7 @@
     "name": "SKTech",
     "version": 1,
     "baseUrl": "https://matkeritnagurorxbxb.store",
-    "description": "SKTech IPTV provider with encrypted M3U and DRM parsing",
+    "description": "SKTech IPTV provider To Watch Live sports and TV channels",
     "authors": [
       "NivinCNC"
     ],
