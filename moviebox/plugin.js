@@ -89,6 +89,65 @@
         return Number(subjectType) === 2 || Number(subjectType) === 7 ? "series" : "movie";
     }
 
+    function cleanTitle(title) {
+        return String(title || "").split("[")[0].trim();
+    }
+
+    function mapActorFromStaff(staff) {
+        if (!staff || String(staff.staffType) !== "1") return null;
+        const name = String(staff.name || "").trim();
+        if (!name) return null;
+        return new Actor({
+            name: name,
+            image: staff.avatarUrl || undefined,
+            role: staff.character || undefined
+        });
+    }
+
+    function mapRecommendationItem(item, fallbackType) {
+        if (!item) return null;
+        const subjectId = item.subjectId || item.id || item.redirectId;
+        const title = cleanTitle(item.title || item.name);
+        if (!subjectId || !title) return null;
+        const cover = item.cover && item.cover.url
+            ? item.cover.url
+            : (item.coverImage || item.poster || item.posterUrl || undefined);
+        return new MultimediaItem({
+            title: title,
+            url: JSON.stringify({ subjectId: String(subjectId), subjectType: item.subjectType || 1 }),
+            posterUrl: cover,
+            type: typeFromSubject(item.subjectType || fallbackType || 1),
+            score: Number(item.imdbRatingValue || item.score) || undefined
+        });
+    }
+
+    function extractRecommendations(data, fallbackType) {
+        const candidates = [];
+        const pools = [
+            data && data.recommendations,
+            data && data.recommendList,
+            data && data.relatedSubjects,
+            data && data.similarSubjects,
+            data && data.titbits,
+            data && data.subjects
+        ];
+        pools.forEach(function(pool) {
+            if (Array.isArray(pool)) candidates.push.apply(candidates, pool);
+        });
+        const seen = {};
+        const out = [];
+        for (let i = 0; i < candidates.length; i++) {
+            const rec = mapRecommendationItem(candidates[i], fallbackType);
+            if (!rec) continue;
+            const recPayload = parseJsonSafe(rec.url, {});
+            const recId = recPayload && recPayload.subjectId ? String(recPayload.subjectId) : "";
+            if (!recId || seen[recId]) continue;
+            seen[recId] = true;
+            out.push(rec);
+        }
+        return out;
+    }
+
     function extractSubjectId(inputUrl) {
         const payload = parseJsonSafe(inputUrl, null);
         if (payload && payload.subjectId) return String(payload.subjectId);
@@ -430,15 +489,19 @@
                     episodes: [new Episode({ name: "Episode 1", season: 1, episode: 1, url: JSON.stringify({ subjectId: subjectId, se: 1, ep: 1 }) })]
                 }) });
             }
-            const title = String(data.title || "Unknown").split("[")[0].trim();
+            const title = cleanTitle(data.title || "Unknown");
             const poster = data.cover && data.cover.url ? data.cover.url : "";
             const description = data.description || "";
             const year = /^\d{4}/.test(String(data.releaseDate || "")) ? Number(String(data.releaseDate).slice(0, 4)) : undefined;
             const type = typeFromSubject(data.subjectType || 1);
+            const cast = (Array.isArray(data.staffList) ? data.staffList : []).map(mapActorFromStaff).filter(Boolean);
+            const recommendations = extractRecommendations(data, data.subjectType || 1);
             if (type === "movie") {
                 const streamPayload = JSON.stringify({ subjectId: subjectId, se: 0, ep: 0 });
                 return cb({ success: true, data: new MultimediaItem({
                     title: title, url: streamPayload, posterUrl: poster, description: description, type: "movie", year: year,
+                    cast: cast,
+                    recommendations: recommendations,
                     episodes: [new Episode({ name: "Full Movie", season: 1, episode: 1, url: streamPayload, posterUrl: poster })]
                 }) });
             }
@@ -480,7 +543,15 @@
             }
             if (!episodes.length) episodes.push(new Episode({ name: "Episode 1", season: 1, episode: 1, url: JSON.stringify({ subjectId: subjectId, se: 1, ep: 1 }), posterUrl: poster }));
             cb({ success: true, data: new MultimediaItem({
-                title: title, url: url, posterUrl: poster, description: description, type: "series", year: year, episodes: episodes
+                title: title,
+                url: url,
+                posterUrl: poster,
+                description: description,
+                type: "series",
+                year: year,
+                cast: cast,
+                recommendations: recommendations,
+                episodes: episodes
             }) });
         } catch (e) {
             cb({ success: false, errorCode: "LOAD_ERROR", message: String(e && e.message ? e.message : e) });
