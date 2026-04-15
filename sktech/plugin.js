@@ -15,6 +15,8 @@
     const SKLIVE_V23_IV = '__SKLIVE_V23_IV__';
     const SKLIVE_KEY = '__SKLIVE_KEY__';
     const SKLIVE_IV = '__SKLIVE_IV__';
+    const DEFAULT_WEB_URL = 'https://welalagaa.site';
+    const REMOTE_PACKAGE_NAME = 'com.live.sktechtv';
 
     const HEADERS = {
         'Accept': '*/*',
@@ -112,9 +114,10 @@
         const apiKey = clean(SKTECH_FIREBASE_API_KEY);
         const appId = clean(SKTECH_FIREBASE_APP_ID);
         const project = clean(SKTECH_FIREBASE_PROJECT_NUMBER);
-        const entries = await fetchRemoteEntries('com.live.sktechtv', apiKey, appId, project);
+        const entries = await fetchRemoteEntries(REMOTE_PACKAGE_NAME, apiKey, appId, project);
         const remote = entries && entries.api_url ? clean(entries.api_url).replace(/\/+$/, '') : '';
-        cachedBaseUrl = remote || clean(manifest.baseUrl).replace(/\/+$/, '');
+        const fallbackBase = clean(manifest.baseUrl || DEFAULT_WEB_URL).replace(/\/+$/, '') || DEFAULT_WEB_URL;
+        cachedBaseUrl = remote || fallbackBase;
         return cachedBaseUrl;
     }
 
@@ -175,6 +178,42 @@
         const p = String(d).split('/');
         if (p.length !== 3) return null;
         return p[2] + '/' + p[1] + '/' + p[0] + ' ' + t + ' +0000';
+    }
+
+    function parseProviderDateTime(text) {
+        const input = clean(text);
+        if (!input) return NaN;
+        const m = input.match(/^(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})\s+([+-])(\d{2})(\d{2})$/);
+        if (!m) return NaN;
+        const year = Number(m[1]);
+        const month = Number(m[2]);
+        const day = Number(m[3]);
+        const hour = Number(m[4]);
+        const minute = Number(m[5]);
+        const second = Number(m[6]);
+        const sign = m[7] === '-' ? -1 : 1;
+        const tzHour = Number(m[8]);
+        const tzMinute = Number(m[9]);
+        const offsetMinutes = sign * (tzHour * 60 + tzMinute);
+        return Date.UTC(year, month - 1, day, hour, minute, second) - (offsetMinutes * 60 * 1000);
+    }
+
+    function isEventLive(event) {
+        const info = event && event.eventInfo ? event.eventInfo : null;
+        if (!info) return false;
+        const now = Date.now();
+        const startTime = parseProviderDateTime(info.startTime);
+        const endTime = parseProviderDateTime(info.endTime);
+        if (!Number.isNaN(endTime) && now >= endTime) return false;
+        if (!Number.isNaN(startTime) && now >= startTime) return true;
+        return false;
+    }
+
+    function isEventEnded(event) {
+        const info = event && event.eventInfo ? event.eventInfo : null;
+        if (!info) return false;
+        const endTime = parseProviderDateTime(info.endTime);
+        return !Number.isNaN(endTime) && Date.now() >= endTime;
     }
 
     async function fetchProviders() {
@@ -292,8 +331,8 @@
     function eventStatus(info) {
         try {
             const now = Date.now();
-            const s = info && info.startTime ? Date.parse(String(info.startTime).replace(' +0000', 'Z').replace(/\//g, '-')) : NaN;
-            const e = info && info.endTime ? Date.parse(String(info.endTime).replace(' +0000', 'Z').replace(/\//g, '-')) : NaN;
+            const s = info && info.startTime ? parseProviderDateTime(info.startTime) : NaN;
+            const e = info && info.endTime ? parseProviderDateTime(info.endTime) : NaN;
             if (!Number.isNaN(e) && now >= e) return '[ENDED]';
             if (!Number.isNaN(s) && now >= s) return '[LIVE]';
             if (!Number.isNaN(s) && now < s) return '[UPCOMING]';
@@ -310,7 +349,19 @@
         if (i.teamBFlag) u += '&teamBImg=' + encodeURIComponent(i.teamBFlag);
         if (i.eventLogo) u += '&eventLogo=' + encodeURIComponent(i.eventLogo);
         if (i.startTime) u += '&time=' + encodeURIComponent(i.startTime);
+        u += '&isLive=' + String(isEventLive(event));
+        u += '&isEnded=' + String(isEventEnded(event));
         return u;
+    }
+
+    function resolveChannelUrl(base, slug) {
+        const raw = clean(slug);
+        if (!raw) return '';
+        if (/^https?:\/\//i.test(raw)) return raw;
+        if (/\.txt($|\?)/i.test(raw)) {
+            return raw.charAt(0) === '/' ? (base + raw) : (base + '/' + raw);
+        }
+        return base + '/' + raw + '.txt';
     }
 
     async function getHome(cb) {
@@ -377,12 +428,16 @@
 
     async function fetchEventStreams(event) {
         const base = await getBaseUrl();
-        const slug = clean(event.slug || '').toLowerCase();
+        const slug = clean(event.slug || '');
         if (!slug) return [];
-        const res = await http_get(base + '/' + slug + '.txt', HEADERS);
+        const channelUrl = resolveChannelUrl(base, slug);
+        if (!channelUrl) return [];
+        const res = await http_get(channelUrl, HEADERS);
         const dec = await decryptSKLive(res.body || '');
-        const arr = parseJsonSafe(dec, []);
-        return Array.isArray(arr) ? arr : [];
+        const parsed = parseJsonSafe(dec, null);
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed && Array.isArray(parsed.streamUrls)) return parsed.streamUrls;
+        return [];
     }
 
     async function resolveTokenApi(tokenApiText) {

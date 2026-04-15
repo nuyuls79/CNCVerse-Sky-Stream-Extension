@@ -13,6 +13,7 @@
     const CRICFY_FIREBASE_PROJECT_NUMBER = '__CRICFY_FIREBASE_PROJECT_NUMBER__';
     const CRICIFY_PROVIDER_SECRET1 = '__CRICIFY_PROVIDER_SECRET1__';
     const CRICIFY_PROVIDER_SECRET2 = '__CRICIFY_PROVIDER_SECRET2__';
+    const REMOTE_PACKAGE_NAME = 'com.cricfy.tv';
 
     const HEADERS = {
         'Accept': '*/*',
@@ -129,7 +130,7 @@
     async function getBaseUrl() {
         if (cachedBaseUrl) return cachedBaseUrl;
         const entries = await fetchRemoteEntries(
-            'com.cricfy.tv',
+            REMOTE_PACKAGE_NAME,
             clean(CRICFY_FIREBASE_API_KEY),
             clean(CRICFY_FIREBASE_APP_ID),
             clean(CRICFY_FIREBASE_PROJECT_NUMBER)
@@ -158,11 +159,58 @@
         return list.filter(function(e){ return Number(e.publish || 0) === 1; });
     }
 
-    function eventStatus(info) {
+    function parseProviderDateTime(text) {
+        const input = clean(text);
+        if (!input) return NaN;
+        const m = input.match(/^(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})\s+([+-])(\d{2})(\d{2})$/);
+        if (!m) return NaN;
+        const year = Number(m[1]);
+        const month = Number(m[2]);
+        const day = Number(m[3]);
+        const hour = Number(m[4]);
+        const minute = Number(m[5]);
+        const second = Number(m[6]);
+        const sign = m[7] === '-' ? -1 : 1;
+        const tzHour = Number(m[8]);
+        const tzMinute = Number(m[9]);
+        const offsetMinutes = sign * (tzHour * 60 + tzMinute);
+        return Date.UTC(year, month - 1, day, hour, minute, second) - (offsetMinutes * 60 * 1000);
+    }
+
+    function createDisplayTitle(event) {
+        const info = event && event.eventInfo ? event.eventInfo : {};
+        if (info.teamA && info.teamB) {
+            if (info.teamA === info.teamB) return String(info.teamA);
+            return String(info.teamA) + ' vs ' + String(info.teamB);
+        }
+        return event && event.title ? event.title : 'Live Event';
+    }
+
+    function isEventLive(event) {
+        const info = event && event.eventInfo ? event.eventInfo : null;
+        if (!info) return false;
+        const now = Date.now();
+        const startTime = parseProviderDateTime(info.startTime);
+        const endTime = parseProviderDateTime(info.endTime);
+        if (!Number.isNaN(endTime) && now >= endTime) return false;
+        if (!Number.isNaN(startTime) && now >= startTime) return true;
+        return false;
+    }
+
+    function isEventEnded(event) {
+        const info = event && event.eventInfo ? event.eventInfo : null;
+        if (!info) return false;
+        const endTime = parseProviderDateTime(info.endTime);
+        return !Number.isNaN(endTime) && Date.now() >= endTime;
+    }
+
+    function eventStatus(event) {
+        const info = event && event.eventInfo ? event.eventInfo : null;
+        if (!info) return '';
         try {
             const now = Date.now();
-            const s = info && info.startTime ? Date.parse(String(info.startTime).replace(' +0000', 'Z').replace(/\//g, '-')) : NaN;
-            const e = info && info.endTime ? Date.parse(String(info.endTime).replace(' +0000', 'Z').replace(/\//g, '-')) : NaN;
+            const s = parseProviderDateTime(info.startTime);
+            const e = parseProviderDateTime(info.endTime);
             if (!Number.isNaN(e) && now >= e) return '[ENDED]';
             if (!Number.isNaN(s) && now >= s) return '[LIVE]';
             if (!Number.isNaN(s) && now < s) return '[UPCOMING]';
@@ -170,15 +218,35 @@
         return '';
     }
 
+    function formatMatchTime(text) {
+        const ts = parseProviderDateTime(text);
+        if (Number.isNaN(ts)) return '';
+        try {
+            return new Date(ts).toLocaleString('en-US', {
+                month: 'short',
+                day: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        } catch (_) {
+            return '';
+        }
+    }
+
     function matchCard(event) {
         const i = event.eventInfo || {};
         let u = 'https://live-card-png.cricify.workers.dev/?title=' + encodeURIComponent(i.eventName || event.title || 'Live Event');
-        u += '&teamA=' + encodeURIComponent(i.teamA || 'A');
-        u += '&teamB=' + encodeURIComponent(i.teamB || 'B');
+        u += '&teamA=' + encodeURIComponent(i.teamA || 'Team A');
+        u += '&teamB=' + encodeURIComponent(i.teamB || 'Team B');
         if (i.teamAFlag) u += '&teamAImg=' + encodeURIComponent(i.teamAFlag);
         if (i.teamBFlag) u += '&teamBImg=' + encodeURIComponent(i.teamBFlag);
         if (i.eventLogo) u += '&eventLogo=' + encodeURIComponent(i.eventLogo);
-        if (i.startTime) u += '&time=' + encodeURIComponent(i.startTime);
+        const formattedTime = formatMatchTime(i.startTime);
+        if (formattedTime) u += '&time=' + encodeURIComponent(formattedTime);
+        u += '&isLive=' + String(isEventLive(event));
+        u += '&isEnded=' + String(isEventEnded(event));
         return u;
     }
 
@@ -259,10 +327,13 @@
             const grouped = {};
             events.forEach(function(e){ const cat = (e.eventInfo && e.eventInfo.eventCat) || e.cat || 'Other'; if (!grouped[cat]) grouped[cat] = []; grouped[cat].push(e); });
             Object.keys(grouped).forEach(function(cat){
-                data['Live ' + cat] = grouped[cat].map(function(e){
+                const sorted = grouped[cat].slice().sort(function(a, b) {
+                    return Number(isEventLive(b)) - Number(isEventLive(a));
+                });
+                data['Live ' + cat] = sorted.map(function(e){
                     const i = e.eventInfo || {};
-                    const t = i.teamA && i.teamB && i.teamA !== i.teamB ? (i.teamA + ' vs ' + i.teamB) : e.title;
-                    const status = eventStatus(i);
+                    const t = createDisplayTitle(e);
+                    const status = eventStatus(e);
                     const poster = matchCard(e);
                     return new MultimediaItem({ title: (status ? status + ' ' : '') + t, url: JSON.stringify({ kind: 'event', event: e, title: t, poster: poster }), posterUrl: poster, type: 'livestream', description: i.eventName || e.title });
                 });
@@ -276,11 +347,9 @@
     async function search(query, cb) {
         try {
             const q = String(query || '').toLowerCase();
-            const providers = filterProvidersBySettings(await fetchProviders());
             const events = await fetchLiveEvents();
             const out = [];
-            providers.forEach(function(p){ if (String(p.title || '').toLowerCase().includes(q)) out.push(new MultimediaItem({ title: p.title, url: JSON.stringify({ kind: 'provider', provider: p }), posterUrl: p.image || '', type: 'livestream' })); });
-            events.forEach(function(e){ const i=e.eventInfo||{}; const t=(i.teamA&&i.teamB&&i.teamA!==i.teamB)?(i.teamA+' vs '+i.teamB):e.title; const s=(e.title+' '+(i.teamA||'')+' '+(i.teamB||'')+' '+(i.eventName||'')).toLowerCase(); if (s.includes(q)) out.push(new MultimediaItem({ title:t, url: JSON.stringify({ kind:'event', event:e, title:t, poster:matchCard(e) }), posterUrl: matchCard(e), type:'livestream' })); });
+            events.forEach(function(e){ const i=e.eventInfo||{}; const t=createDisplayTitle(e); const s=(e.title+' '+(i.teamA||'')+' '+(i.teamB||'')+' '+(i.eventName||'')+' '+(i.eventType||'')).toLowerCase(); if (s.includes(q)) { const status = eventStatus(e); out.push(new MultimediaItem({ title:(status ? status + ' ' : '') + t, url: JSON.stringify({ kind:'event', event:e, title:t, poster:matchCard(e) }), posterUrl: matchCard(e), type:'livestream' })); } });
             cb({ success: true, data: out });
         } catch (_) {
             cb({ success: true, data: [] });
@@ -303,7 +372,12 @@
 
             if (payload.kind === 'event') {
                 const e = payload.event || {}; const i = e.eventInfo || {};
-                const plot = (i.eventName ? ('Event: ' + i.eventName + '\n') : '') + (i.startTime ? ('Start: ' + i.startTime) : '');
+                let plot = '';
+                if (i.eventType) plot += 'Type: ' + i.eventType + '\n';
+                if (i.eventName) plot += 'Event: ' + i.eventName + '\n';
+                if (i.startTime) plot += 'Start: ' + i.startTime + '\n';
+                const serverCount = Array.isArray(e.formats) ? e.formats.length : 0;
+                plot += '\nAvailable Servers: ' + String(serverCount);
                 return cb({ success: true, data: new MultimediaItem({ title: payload.title || e.title || 'Live Event', url: url, posterUrl: payload.poster || e.image || '', description: plot, type: 'livestream', episodes: [new Episode({ name: 'Watch Live', season: 1, episode: 1, url: url, posterUrl: payload.poster || e.image || '' })] }) });
             }
 
@@ -324,8 +398,9 @@
         if (!slug) return [];
         const res = await http_get(base + '/channels/' + slug + '.txt', HEADERS);
         const dec = await decryptCricfy(res.body || '');
-        const obj = parseJsonSafe(dec, {});
-        return Array.isArray(obj.streamUrls) ? obj.streamUrls : [];
+        const obj = parseJsonSafe(dec, null);
+        if (obj && Array.isArray(obj.streamUrls)) return obj.streamUrls;
+        return [];
     }
 
     function parseStreamLink(link) {
@@ -350,7 +425,7 @@
                     const parsed = parseStreamLink(s.link || '');
                     if (!parsed.url) return;
                     const r = new StreamResult({ url: parsed.url, source: s.title || ('Server ' + (idx + 1)), headers: parsed.headers });
-                    if (String(s.type || '') === '7' && s.api && String(s.api).includes(':')) {
+                    if ((String(s.type || '') === '7' || String(parsed.url || '').toLowerCase().includes('.mpd')) && s.api && String(s.api).includes(':')) {
                         const p = String(s.api).split(':');
                         const kidHex = normalizeDrmHex(p[0]);
                         const keyHex = normalizeDrmHex(p[1]);
