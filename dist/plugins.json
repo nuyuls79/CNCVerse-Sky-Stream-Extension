@@ -20,6 +20,45 @@
     "url": "http://10.20.30.3:5500/dist/dev.nivincnc.cncverse.castletv.sky"
   },
   {
+    "packageName": "dev.nivincnc.cncverse.cncverse",
+    "name": "CNCVerse",
+    "version": 1,
+    "baseUrl": "https://net52.cc",
+    "description": "CNCVerse OTT mirrors with subproviders",
+    "authors": [
+      "NivinCNC"
+    ],
+    "languages": [
+      "en",
+      "ta",
+      "hi"
+    ],
+    "categories": [
+      "Movie",
+      "TvSeries",
+      "Anime"
+    ],
+    "providers": [
+      {
+        "id": "NETFLIX",
+        "name": "Netflix"
+      },
+      {
+        "id": "PRIME VIDEO",
+        "name": "Prime Video"
+      },
+      {
+        "id": "HOTSTAR",
+        "name": "Hotstar"
+      },
+      {
+        "id": "DISNEY PLUS",
+        "name": "Disney Plus"
+      }
+    ],
+    "url": "http://10.20.30.3:5500/dist/dev.nivincnc.cncverse.cncverse.sky"
+  },
+  {
     "packageName": "dev.nivincnc.cncverse.cricfy",
     "name": "Cricfy",
     "version": 3,

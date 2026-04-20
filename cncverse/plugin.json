@@ -1,0 +1,16 @@
+{
+  "packageName": "dev.nivincnc.cncverse.cncverse",
+  "name": "CNCVerse",
+  "version": 1,
+  "baseUrl": "https://net52.cc",
+  "description": "Netflix, PrimeVideo, Disney+ Hotstar Contents in Multiple Languages",
+  "authors": ["NivinCNC"],
+  "languages": ["en", "ta", "hi"],
+  "categories": ["Movie", "TvSeries", "Anime"],
+  "providers": [
+    { "id": "NETFLIX", "name": "Netflix" },
+    { "id": "PRIME VIDEO", "name": "Prime Video" },
+    { "id": "HOTSTAR", "name": "Hotstar" },
+    { "id": "DISNEY PLUS", "name": "Disney Plus" }
+  ]
+}
