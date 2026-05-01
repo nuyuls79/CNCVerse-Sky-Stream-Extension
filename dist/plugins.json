@@ -17,12 +17,12 @@
       "Movie",
       "TvSeries"
     ],
-    "url": "https://raw.githubusercontent.com/NivinCNC/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.castletv.sky"
+    "url": "http://127.0.0.1:5500/dist/dev.nivincnc.cncverse.castletv.sky"
   },
   {
     "packageName": "dev.nivincnc.cncverse.cncverse",
     "name": "CNCVerse",
-    "version": 2,
+    "version": 1,
     "baseUrl": "https://net52.cc",
     "description": "Netflix, PrimeVideo, Disney+ Hotstar Contents in Multiple Languages",
     "authors": [
@@ -49,10 +49,14 @@
       },
       {
         "id": "HOTSTAR",
-        "name": "Disney+ Hotstar"
+        "name": "Hotstar"
+      },
+      {
+        "id": "DISNEY PLUS",
+        "name": "Disney Plus"
       }
     ],
-    "url": "https://raw.githubusercontent.com/NivinCNC/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.cncverse.sky"
+    "url": "http://127.0.0.1:5500/dist/dev.nivincnc.cncverse.cncverse.sky"
   },
   {
     "packageName": "dev.nivincnc.cncverse.cricfy",
@@ -341,7 +345,7 @@
         "name": "INDIA TV 2"
       }
     ],
-    "url": "https://raw.githubusercontent.com/NivinCNC/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.cricfy.sky"
+    "url": "http://127.0.0.1:5500/dist/dev.nivincnc.cncverse.cricfy.sky"
   },
   {
     "packageName": "dev.nivincnc.cncverse.moviebox",
@@ -361,7 +365,7 @@
       "Movie",
       "TvSeries"
     ],
-    "url": "https://raw.githubusercontent.com/NivinCNC/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.moviebox.sky"
+    "url": "http://127.0.0.1:5500/dist/dev.nivincnc.cncverse.moviebox.sky"
   },
   {
     "packageName": "dev.nivincnc.cncverse.sktech",
@@ -706,6 +710,6 @@
         "name": "SINGAPORE TV"
       }
     ],
-    "url": "https://raw.githubusercontent.com/NivinCNC/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.sktech.sky"
+    "url": "http://127.0.0.1:5500/dist/dev.nivincnc.cncverse.sktech.sky"
   }
 ]
