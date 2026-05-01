@@ -420,90 +420,33 @@
         return out;
     }
 
-    async function loadHandshakeStreams(provider, payload) {
-        const globalHash = await bypass(provider);
-        const cookieStrInitial = 't_hash_t=' + globalHash + '; ott=' + provider.ott + '; hd=on';
-        const handshakeHeaders = {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36',
-            'Referer': BASE_URL + '/',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json, text/plain, */*',
-            'Connection': 'keep-alive'
-        };
-
-        const playPostRes = await http_post(BASE_URL + '/play.php', Object.assign({}, handshakeHeaders, {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Cookie: cookieStrInitial
-        }), 'id=' + encodeURIComponent(payload.id));
-
-        const playJson = parseJsonSafe(playPostRes.body, {});
-        const h = clean(playJson.h);
-        const iframeUrl = provider.playUrl + '/play.php?id=' + encodeURIComponent(payload.id) + '&' + h;
-
-        const iframeRes = await http_get(iframeUrl, {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-GB,en;q=0.9',
-            'Connection': 'keep-alive',
-            'Host': 'net52.cc',
-            'Referer': BASE_URL + '/',
-            'sec-ch-ua': '"Chromium";v="142", "Brave";v="142", "Not_A Brand";v="99"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Linux"',
-            'Sec-Fetch-Dest': 'iframe',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'cross-site',
-            'Sec-Fetch-Storage-Access': 'none',
-            'Sec-Fetch-User': '?1',
-            'Sec-GPC': '1',
-            'Upgrade-Insecure-Requests': '1',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36',
-            Cookie: cookieStrInitial
-        });
-
-        const tokenMatch = String(iframeRes.body || '').match(/data-h="([^"]+)"/);
-        const token = tokenMatch ? tokenMatch[1] : '';
-        if (!token) throw new Error('Handshake failed: token not found');
-
-        const playlistUrl = provider.playUrl + provider.playlistPath + '?id=' + encodeURIComponent(payload.id) + '&t=' + encodeURIComponent(payload.title || '') + '&tm=' + unixTs() + '&h=' + encodeURIComponent(token);
-        const listRes = await http_get(playlistUrl, Object.assign({}, handshakeHeaders, { Referer: provider.playUrl + '/', Cookie: cookieStrInitial }));
-        const playlist = parseJsonSafe(listRes.body, []);
+    async function loadMobilePlaylistStreams(provider, payload, playlistPath, ottOverride) {
+        const hash = await bypass(provider);
+        const ott = ottOverride || provider.ott;
+        const cookieStr = 't_hash_t=' + hash + '; ott=' + ott + '; hd=on';
+        const baseUrl = provider.playUrl;
+        const playlistUrl = baseUrl + playlistPath + '?id=' + encodeURIComponent(payload.id) + '&t=' + encodeURIComponent(payload.title || '') + '&tm=' + unixTs();
+        const res = await http_get(playlistUrl, Object.assign({}, providerHeaders(provider), {
+            Referer: baseUrl + '/home',
+            Cookie: cookieStr
+        }));
+        const playlist = parseJsonSafe(res.body, []);
         const out = [];
 
         (Array.isArray(playlist) ? playlist : []).forEach(function (item) {
-            (Array.isArray(item.sources) ? item.sources : []).forEach(function (src) {
-                let fullUrl = String(src.file || '').replace('/tv/', '/');
-                if (!fullUrl.startsWith('/')) fullUrl = '/' + fullUrl;
-                const finalUrl = provider.playUrl + '/' + fullUrl.replace(/^\/+/, '');
-
-                const inMatch = String(src.file || '').match(/[?&]in=([^&]+)/);
-                const streamHash = inMatch ? decodeURIComponent(inMatch[1]) : globalHash;
-                const streamCookie = 't_hash_t=' + streamHash + '; ott=' + provider.ott + '; hd=on';
-
-                const proxifiedUrl = 'MAGIC_PROXY_v2' + btoa(JSON.stringify({
-                    url: finalUrl,
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36',
-                        'Referer': provider.playUrl + '/',
-                        'Cookie': streamCookie,
-                        'sec-ch-ua': '"Chromium";v="142", "Brave";v="142", "Not_A Brand";v="99"',
-                        'sec-ch-ua-mobile': '?0',
-                        'sec-ch-ua-platform': '"Linux"',
-                        'Accept': '*/*',
-                        'Accept-Encoding': 'identity',
-                        'Connection': 'keep-alive'
-                    },
-                    options: {
-                        mirrorHosts: ['net52.cc', 'net22.cc', 'nm-cdn', 'top'],
-                        keepCookies: ['t_hash_t', 'ott', 'hd'],
-                        referer: provider.playUrl + '/'
-                    }
-                }));
-
+            (Array.isArray(item.sources) ? item.sources : []).forEach(function (src, i) {
+                const rawFile = clean(src.file);
+                if (!rawFile) return;
+                const finalUrl = baseUrl + '/' + rawFile.replace(/^\/+/, '');
                 out.push(new StreamResult({
-                    url: proxifiedUrl,
-                    source: 'NetMirror [' + clean(src.label || 'Auto') + ']',
+                    url: finalUrl,
+                    source: clean(src.label) || ('Server ' + (i + 1)),
                     type: 'hls',
-                    headers: {}
+                    headers: {
+                        Referer: baseUrl + '/home',
+                        Cookie: cookieStr,
+                        'User-Agent': (providerHeaders(provider) || {})['User-Agent'] || COMMON_HEADERS['User-Agent']
+                    }
                 }));
             });
         });
@@ -518,10 +461,13 @@
             const provider = PROVIDERS[clean(payload.provider).toUpperCase()] || cfg();
 
             let results = [];
-           
-            results = await loadPrimeStreams(provider, payload);
-            
-
+            if (provider.id === 'HOTSTAR' || provider.id === 'DISNEY PLUS') {
+                results = await loadMobilePlaylistStreams(provider, payload, '/mobile/hs/playlist.php', 'hs');
+            } else if (provider.id === 'NETFLIX') {
+                results = await loadMobilePlaylistStreams(provider, payload, '/mobile/playlist.php');
+            } else {
+                results = await loadPrimeStreams(provider, payload);
+            }
             cb({ success: true, data: results });
         } catch (e) {
             cb({ success: false, errorCode: 'STREAM_ERROR', message: String(e && e.message || e) });
