@@ -4,7 +4,7 @@
      */
     // var manifest is injected at runtime
 
-    const BASE_URL = 'https://net22.cc';
+    const BASE_URL = 'https://net52.cc';
     const PLAY_URL = 'https://net52.cc';
 
     const COMMON_HEADERS = {
@@ -34,7 +34,7 @@
             ott: 'nf',
             baseUrl: BASE_URL,
             playUrl: PLAY_URL,
-            homePath: '/home',
+            homePath: '/mobile/home?app=1',
             searchPath: '/search.php',
             postPath: '/post.php',
             episodesPath: '/episodes.php',
@@ -109,7 +109,7 @@
 
     function providerHeaders(provider) {
         const pid = clean(provider && provider.id).toUpperCase();
-        return (pid === 'HOTSTAR' || pid === 'DISNEY PLUS') ? MOBILE_COMMON_HEADERS : COMMON_HEADERS;
+        return (pid === 'HOTSTAR' || pid === 'DISNEY PLUS' || pid === 'NETFLIX') ? MOBILE_COMMON_HEADERS : COMMON_HEADERS;
     }
 
     function proxiedImage(url) {
@@ -160,7 +160,7 @@
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
             };
             const body = 'g-recaptcha-response=' + encodeURIComponent(randomUuid());
-            const res = await http_post(BASE_URL + '/verifycheck', headers, body);
+            const res = await http_post(BASE_URL + '/verify.php', Object.assign({ redirect: 'manual' }, headers), body);
             const hash = parseSetCookie((res && res.headers && (res.headers['set-cookie'] || res.headers['Set-Cookie'])) || '');
             if (!hash) throw new Error('Failed to bypass authentication');
             cachedCookie = hash;
@@ -272,9 +272,7 @@
             const provider = cfg();
             const cookieStr = await cookieString(provider);
             const headers = Object.assign({}, providerHeaders(provider), {
-                Referer: provider.id === 'NETFLIX'
-                    ? (provider.baseUrl + '/')
-                    : (provider.baseUrl + '/mobile/home?app=1'),
+                Referer: (provider.baseUrl + '/mobile/home?app=1'),
                 Cookie: cookieStr,
                 'X-Requested-With': 'XMLHttpRequest'
             });
@@ -302,7 +300,7 @@
 
             const res = await http_get(provider.baseUrl + provider.homePath, headers);
             const html = String(res.body || '');
-            const data = provider.id === 'NETFLIX' ? parseNetflixRows(html, provider) : parseTrayRows(html, provider);
+            const data = parseTrayRows(html, provider);
             cb({ success: true, data: data });
         } catch (e) {
             cb({ success: false, errorCode: 'HOME_ERROR', message: String(e && e.message || e) });
