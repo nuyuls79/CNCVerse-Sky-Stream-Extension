@@ -1,0 +1,66 @@
+name: Build and Deploy Repository (TEST)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'dist/**'
+      - 'README.md'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Create local.properties from GitHub Secrets
+        run: |
+          cat > local.properties << 'EOF'
+          CASTLE_SUFFIX=${{ secrets.CASTLE_SUFFIX }}
+          SKTECH_FIREBASE_API_KEY=${{ secrets.SKTECH_FIREBASE_API_KEY }}
+          SKTECH_FIREBASE_APP_ID=${{ secrets.SKTECH_FIREBASE_APP_ID }}
+          SKTECH_FIREBASE_PROJECT_NUMBER=${{ secrets.SKTECH_FIREBASE_PROJECT_NUMBER }}
+          SKLIVE_V23_KEY=${{ secrets.SKLIVE_V23_KEY }}
+          SKLIVE_V23_IV=${{ secrets.SKLIVE_V23_IV }}
+          SKLIVE_KEY=${{ secrets.SKLIVE_KEY }}
+          SKLIVE_IV=${{ secrets.SKLIVE_IV }}
+          CRICFY_FIREBASE_API_KEY=${{ secrets.CRICFY_FIREBASE_API_KEY }}
+          CRICFY_FIREBASE_APP_ID=${{ secrets.CRICFY_FIREBASE_APP_ID }}
+          CRICFY_FIREBASE_PROJECT_NUMBER=${{ secrets.CRICFY_FIREBASE_PROJECT_NUMBER }}
+          CRICIFY_PROVIDER_SECRET1=${{ secrets.CRICIFY_PROVIDER_SECRET1 }}
+          CRICIFY_PROVIDER_SECRET2=${{ secrets.CRICIFY_PROVIDER_SECRET2 }}
+          MOVIEBOX_DEFAULT_SECRET_LAYER1_B64=${{ secrets.MOVIEBOX_DEFAULT_SECRET_LAYER1_B64 }}
+          MOVIEBOX_ALT_SECRET_LAYER1_B64=${{ secrets.MOVIEBOX_ALT_SECRET_LAYER1_B64 }}
+          EOF
+
+      - name: Inject local.properties secrets
+        run: node scripts/inject-local-properties-secrets.mjs
+
+      - name: Deploy Repository
+        run: |
+          npm install -g skystream-cli
+          skystream deploy -u https://raw.githubusercontent.com/${{ github.repository }}/main
+
+      - name: Restore source placeholders and remove local.properties
+        run: |
+          git checkout -- castletv/plugin.js sktech/plugin.js cricfy/plugin.js moviebox/plugin.js
+          rm -f local.properties
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: automated deploy [skip ci]" || echo "No changes to commit"
+          git push
