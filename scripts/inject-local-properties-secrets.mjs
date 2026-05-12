@@ -8,6 +8,7 @@ const TARGET_FILES = [
   path.join(ROOT, 'sktech', 'plugin.js'),
   path.join(ROOT, 'cricfy', 'plugin.js'),
   path.join(ROOT, 'moviebox', 'plugin.js')
+  path.join(ROOT, 'layarkaca', 'plugin.js')
 ];
 
 function parseProperties(content) {
