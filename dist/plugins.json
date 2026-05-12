@@ -17,7 +17,7 @@
       "Movie",
       "TvSeries"
     ],
-    "url": "https://raw.githubusercontent.com/NivinCNC/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.castletv.sky"
+    "url": "https://raw.githubusercontent.com/nuyuls79/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.castletv.sky"
   },
   {
     "packageName": "dev.nivincnc.cncverse.cncverse",
@@ -56,7 +56,7 @@
         "name": "Disney Plus"
       }
     ],
-    "url": "https://raw.githubusercontent.com/NivinCNC/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.cncverse.sky"
+    "url": "https://raw.githubusercontent.com/nuyuls79/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.cncverse.sky"
   },
   {
     "packageName": "dev.nivincnc.cncverse.cricfy",
@@ -345,7 +345,31 @@
         "name": "INDIA TV 2"
       }
     ],
-    "url": "https://raw.githubusercontent.com/NivinCNC/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.cricfy.sky"
+    "url": "https://raw.githubusercontent.com/nuyuls79/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.cricfy.sky"
+  },
+  {
+    "packageName": "com.layarkacaprovider.lk21",
+    "name": "LayarKaca21",
+    "version": 1,
+    "baseUrl": "https://tv8.lk21official.cc",
+    "description": "LayarKaca21 Movies & TV Series Provider with TMDB Poster, Trailer, and Stream Extraction Support",
+    "authors": [
+      "Waduk"
+    ],
+    "languages": [
+      "id"
+    ],
+    "categories": [
+      "Movie",
+      "TvSeries"
+    ],
+    "providers": [
+      {
+        "id": "LAYARKACA21",
+        "name": "LayarKaca21"
+      }
+    ],
+    "url": "https://raw.githubusercontent.com/nuyuls79/CNCVerse-Sky-Stream-Extension/main/dist/com.layarkacaprovider.lk21.sky"
   },
   {
     "packageName": "dev.nivincnc.cncverse.moviebox",
@@ -365,7 +389,7 @@
       "Movie",
       "TvSeries"
     ],
-    "url": "https://raw.githubusercontent.com/NivinCNC/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.moviebox.sky"
+    "url": "https://raw.githubusercontent.com/nuyuls79/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.moviebox.sky"
   },
   {
     "packageName": "dev.nivincnc.cncverse.sktech",
@@ -710,6 +734,6 @@
         "name": "SINGAPORE TV"
       }
     ],
-    "url": "https://raw.githubusercontent.com/NivinCNC/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.sktech.sky"
+    "url": "https://raw.githubusercontent.com/nuyuls79/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.sktech.sky"
   }
 ]

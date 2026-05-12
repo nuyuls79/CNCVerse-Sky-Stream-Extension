@@ -4,6 +4,6 @@
   "description": "SkyStream plugins repository for CNCVerse providers",
   "manifestVersion": 1,
   "pluginLists": [
-    "https://raw.githubusercontent.com/NivinCNC/CNCVerse-Sky-Stream-Extension/main/dist/plugins.json"
+    "https://raw.githubusercontent.com/nuyuls79/CNCVerse-Sky-Stream-Extension/main/dist/plugins.json"
   ]
 }
