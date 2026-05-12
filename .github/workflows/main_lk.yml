@@ -1,0 +1,42 @@
+name: Build and Deploy Repository (TEST) LK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+         -version: "20"
+
+      - name: Install SkyStream CLI
+        run: npm install -g skystream-cli
+
+      - name: Build and Deploy Repository
+        run: |
+         ream deploy \
+            -u https://raw.githubusercontent.com/${{ github.repository }}/main
+
+      - name: Commit Dist Files
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add .
+
+          git commit -m "chore: auto deploy [skip ci]" || echo "No changes to commit"
+
+          git push
