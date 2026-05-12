@@ -1,0 +1,16 @@
+{
+  "packageName": "com.layarkacaprovider.lk21",
+  "name": "LayarKaca21",
+  "version": 1,
+  "baseUrl": "https://tv8.lk21official.cc",
+  "description": "LayarKaca21 Movies & TV Series Provider with TMDB Poster, Trailer, and Stream Extraction Support",
+  "authors": ["YourName"],
+  "languages": ["id"],
+  "categories": ["Movie", "TvSeries"],
+  "providers": [
+    {
+      "id": "LAYARKACA21",
+      "name": "LayarKaca21"
+    }
+  ]
+}
