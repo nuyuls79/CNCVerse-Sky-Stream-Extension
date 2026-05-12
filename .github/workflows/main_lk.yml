@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-         -version: "20"
+         -version: "23"
 
       - name: Install SkyStream CLI
         run: npm install -g skystream-cli
