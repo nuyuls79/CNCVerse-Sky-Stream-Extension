@@ -348,7 +348,7 @@
     "url": "https://raw.githubusercontent.com/nuyuls79/CNCVerse-Sky-Stream-Extension/main/dist/dev.nivincnc.cncverse.cricfy.sky"
   },
   {
-    "packageName": "com.layarkacaprovider.lk21",
+    "packageName": "dev.layarkacaprovider.lk21",
     "name": "LayarKaca21",
     "version": 1,
     "baseUrl": "https://tv8.lk21official.cc",
@@ -369,7 +369,7 @@
         "name": "LayarKaca21"
       }
     ],
-    "url": "https://raw.githubusercontent.com/nuyuls79/CNCVerse-Sky-Stream-Extension/main/dist/com.layarkacaprovider.lk21.sky"
+    "url": "https://raw.githubusercontent.com/nuyuls79/CNCVerse-Sky-Stream-Extension/main/dist/dev.layarkacaprovider.lk21.sky"
   },
   {
     "packageName": "dev.nivincnc.cncverse.moviebox",
